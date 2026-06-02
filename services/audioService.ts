@@ -80,9 +80,10 @@ const createAssetFromFilename = (filename: string, identifier: string, artist: s
 };
 
 export const generateRizaContent = (): AudioAsset[] => {
-    const duas = RIZA_KNOWN_DUAS.map(f => createAssetFromFilename(f, RIZA_ITEM_ID, 'Rıza Günay', AudioMode.DUA, 'riza_dua'));
+    // Dua artık YouTube playlist'ten (fetchDuaPlaylistContent). Archive.org Rıza dua'ları
+    // kaldırıldı — bazılarında ses gelmiyordu. Rıza'dan yalnız Kur'an tilaveti kalır.
     const quran = RIZA_KNOWN_QURAN.map(f => createAssetFromFilename(f, RIZA_ITEM_ID, 'Rıza Günay', AudioMode.QURAN, 'riza_quran'));
-    return [...duas, ...quran];
+    return [...quran];
 };
 
 export const generateKasimiContent = (): AudioAsset[] => {
@@ -163,7 +164,9 @@ export const fetchRizaGunayContent = async (): Promise<AudioAsset[]> => {
     const data = await response.json();
     if (!data?.files) return staticRiza;
     
-    const fetched = processArchiveFiles(RIZA_ITEM_ID, data.files, 'Rıza Günay', null, 'riza');
+    // DUA artık YouTube playlist'ten — Rıza arşivinden yalnız Kur'an tilavetini al (DUA-sınıflıları ele).
+    const fetched = processArchiveFiles(RIZA_ITEM_ID, data.files, 'Rıza Günay', null, 'riza')
+      .filter(a => a.type === AudioMode.QURAN);
     const combined = [...staticRiza, ...fetched];
     return Array.from(new Map(combined.map(item => [item.id, item])).values());
   } catch (error) {

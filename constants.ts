@@ -139,21 +139,8 @@ export const AUDIO_ASSETS: AudioAsset[] = [
     url: 'https://archive.org/download/ebulkasimi/ALA+SURESI+-AHMED+EBUL+KASIMI+(256kbit).m4a'
   },
 
-  // --- Dua (Rıza Günay) ---
-  {
-    id: 'dua_sekine_riza',
-    type: AudioMode.DUA,
-    title: 'Sekine Duası',
-    artist: 'Rıza Günay',
-    url: 'https://archive.org/download/HafzRizaGunay/Sekine_Duasi.mp3'
-  },
-  {
-    id: 'dua_cevsen_riza',
-    type: AudioMode.DUA,
-    title: 'Cevşen-ül Kebir',
-    artist: 'Rıza Günay',
-    url: 'https://archive.org/details/HafzRizaGunay/Cev%C5%9Fen\'%C3%BCl+Kebir+-+Radyo+Cihan+-+Tek+Par%C3%A7a+-+H%C3%BCsrev+Hatt%C4%B1+-+R%C4%B1za+G%C3%9CNAY+(T%C3%BCrk%C3%A7e+Altyaz%C4%B1+Se%C3%A7ene%C4%9Fiyle)+(256kbit).m4a'
-  },
+  // --- Dua: artık YouTube playlist'ten (audioService.fetchDuaPlaylistContent).
+  //     Archive.org Rıza dua'ları kaldırıldı (bazılarında ses gelmiyordu; cevsen 'details' URL=HTML). ---
 
   // --- Instrumentals ---
   {

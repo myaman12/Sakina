@@ -124,19 +124,24 @@ describe('Audio Priority Selection', () => {
     });
   });
 
-  describe('Dua Sequential Logic', () => {
+  describe('Dua Sequential Logic (YouTube playlist)', () => {
+    // DUA artık statik constants'tan DEĞİL YouTube playlist'ten (runtime fetch) gelir
+    // (archive.org Rıza dua'ları kaldırıldı — bazılarında ses gelmiyordu). Bu testler o
+    // havuzu temsil eden mock dua varlıklarıyla sıralama mantığını doğrular.
+    const duaAssets: AudioAsset[] = [
+      { id: 'dua_yt_sekine', type: AudioMode.DUA, title: 'Rıza Günay Sekine Duası', artist: 'Rıza Günay', url: 'https://www.youtube.com/watch?v=qgNN1h39eJU' },
+      { id: 'dua_yt_cevsen', type: AudioMode.DUA, title: "Cevşen Duası Rıza Günay Cevşen'ül Kebir", artist: 'Rıza Günay', url: 'https://www.youtube.com/watch?v=VsCFvQNcGeo' },
+      { id: 'dua_yt_munciye', type: AudioMode.DUA, title: 'Salat-ı Münciye (Tuncina) Duası', artist: 'YouTube — Dua', url: 'https://www.youtube.com/watch?v=Tt6poBL2-f8' },
+    ];
+
     it('should play Cevşen after Sekine Duası', () => {
-      const selected = selectAudioForTheme(
-        audioAssets,
-        AudioMode.DUA,
-        'dua_sekine_riza'
-      );
+      const selected = selectAudioForTheme(duaAssets, AudioMode.DUA, 'dua_yt_sekine');
       expect(selected.title.toLowerCase()).toContain('cevşen');
-      expect(selected.id).toBe('dua_cevsen_riza');
+      expect(selected.id).toBe('dua_yt_cevsen');
     });
 
-    it('should start with Sekine when entering Dua mode', () => {
-      const sekine = audioAssets.find(a => a.id === 'dua_sekine_riza');
+    it('should provide Sekine in the Dua pool', () => {
+      const sekine = duaAssets.find(a => a.title.toLowerCase().includes('sekine') && a.type === AudioMode.DUA);
       expect(sekine).toBeDefined();
       expect(sekine?.type).toBe(AudioMode.DUA);
     });
@@ -149,8 +154,8 @@ describe('Audio Priority Selection', () => {
         artist: 'Test',
         url: 'http://test.com'
       };
-      const testAssets = [...audioAssets, quranAsset];
-      const selected = selectAudioForTheme(testAssets, AudioMode.DUA, 'dua_cevsen_riza');
+      const testAssets = [...duaAssets, quranAsset];
+      const selected = selectAudioForTheme(testAssets, AudioMode.DUA, 'dua_yt_cevsen');
       expect(selected.title.toLowerCase()).not.toContain('surah');
     });
   });
@@ -200,16 +205,10 @@ describe('Audio Priority Selection', () => {
 });
 
 describe('Audio Asset Validation', () => {
-  it('should have Sekine Duası in constants', () => {
-    const sekine = AUDIO_ASSETS.find(a => a.id === 'dua_sekine_riza');
-    expect(sekine).toBeDefined();
-    expect(sekine?.title).toBe('Sekine Duası');
-  });
-
-  it('should have Cevşen-ül Kebir in constants', () => {
-    const cevsen = AUDIO_ASSETS.find(a => a.id === 'dua_cevsen_riza');
-    expect(cevsen).toBeDefined();
-    expect(cevsen?.title).toBe('Cevşen-ül Kebir');
+  it('should NOT contain archive.org dua assets (moved to YouTube playlist)', () => {
+    // DUA YouTube playlist'e taşındı; archive.org Rıza dua'ları (sessiz/bozuk URL) kaldırıldı.
+    const archiveDuas = AUDIO_ASSETS.filter(a => a.type === AudioMode.DUA && a.url.includes('archive.org'));
+    expect(archiveDuas.length).toBe(0);
   });
 
   it('should have at least 4 Qassas Adhan variants', () => {
