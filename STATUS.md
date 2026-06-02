@@ -7,6 +7,15 @@
 **Build:** `npm run build` → `dist/`
 **Test:** `npm run test` (Vitest)
 
+## Versiyonlama (git — 2026-06-02)
+
+- **Git repo:** `apps/sakina/.git` (local). Baseline commit `14869f3`, **tag `v2.8`**.
+- **`.git` Syncthing'den HARİÇ** (vault `.stignore`: `apps/*/.git`) — çok-cihaz sync clobber'ı önler (L-047); kod doğruluk kaynağı = laptop.
+- **`.env` commit EDİLMEZ** (`.gitignore`: API anahtarları Gemini/Pexels/Pixabay).
+- **GitHub:** private remote `https://github.com/myaman12/Sakina` (off-device yedek; main + v2.8 push'landı). Push: `git push` (+ `git push --tags`).
+- **Akış:** özellik = `git switch -c <ad>` → çalış → bozulursa `git switch main`; iyiyse merge + `git tag vX.Y`.
+- **Geri dönüş:** `git checkout v2.8` | `git revert <commit>` | kaza → `git reflog`. Sürüm geçmişi: `git log --oneline`, etiketler `git tag`.
+
 ## Stack
 
 React 19.2 + TypeScript 5.8 + Vite 6.2 + Tailwind CSS
