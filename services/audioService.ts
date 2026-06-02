@@ -216,6 +216,37 @@ export const fetchQassasContent = async (): Promise<AudioAsset[]> => {
     }
 };
 
+// --- DUA YouTube Playlist (audio-only via hidden ReactPlayer; bkz AudioPlayer.tsx) ---
+// Katalog public/dua_audio_catalog.json (yt-dlp ile üretilir; playlist değişince yeniden üret).
+interface DuaCatalogEntry { id: string; title: string; duration?: number | null; }
+
+const cleanDuaTitle = (raw: string): string =>
+    (raw || '')
+        .replace(/[؀-ۿ]+/g, '')          // arapça zikir gürültüsü
+        .replace(/\(\s*\)/g, '')
+        .replace(/\s{2,}/g, ' ')
+        .trim() || 'Dua';
+
+export const fetchDuaPlaylistContent = async (): Promise<AudioAsset[]> => {
+    try {
+        const response = await fetch('/dua_audio_catalog.json');
+        if (!response.ok) throw new Error('dua_audio_catalog.json offline');
+        const entries: DuaCatalogEntry[] = await response.json();
+        if (!Array.isArray(entries)) return [];
+        return entries
+            .filter(e => e?.id)
+            .map(e => ({
+                id: `dua_yt_${e.id}`,
+                url: `https://www.youtube.com/watch?v=${e.id}`,
+                type: AudioMode.DUA,
+                title: cleanDuaTitle(e.title),
+                artist: /r[ıi]za\s*g[üu]nay/i.test(e.title || '') ? 'Rıza Günay' : 'YouTube — Dua',
+            }));
+    } catch (error) {
+        return [];
+    }
+};
+
 export const fetchAdhanContent = async (): Promise<AudioAsset[]> => {
   const staticAdhans = ADHAN_KNOWN_FILES.map(f => createAssetFromFilename(f, HARAMAIN_ITEM_ID, 'Haramain Muadhins', AudioMode.ADHAN, 'adhan'));
   try {

@@ -16,7 +16,8 @@ import {
   generateMahirContent,
   generateKurdiContent,
   fetchKasimiContent,
-  fetchQassasContent
+  fetchQassasContent,
+  fetchDuaPlaylistContent
 } from './services/audioService';
 import {
   AppSettings,
@@ -359,11 +360,12 @@ const App: React.FC = () => {
       const mahirContent = generateMahirContent();
 
       // Added fetchQassasContent to the Promise.all array
-      const [rizaContent, adhanContent, kasimiContent, qassasContent] = await Promise.all([
+      const [rizaContent, adhanContent, kasimiContent, qassasContent, duaPlaylistContent] = await Promise.all([
         fetchRizaGunayContent(),
         fetchAdhanContent(),
         fetchKasimiContent(),
-        fetchQassasContent()
+        fetchQassasContent(),
+        fetchDuaPlaylistContent()
       ]);
 
       setAudioAssets(prev => {
@@ -384,6 +386,13 @@ const App: React.FC = () => {
         // Ensure we don't accidentally overwrite our high-quality constants with lower quality generic fetches
         if (adhanContent.length > 0) {
           newAssets = [...newAssets, ...adhanContent.filter(a => !a.id.startsWith('adhan_madinah_hq_') && !a.id.startsWith('adhan_qassas_'))];
+        }
+
+        // DUA YouTube playlist — havuza EKLE (sona; arşiv Cevşen forced-start için ilk sırada kalsın).
+        // dedupe: aynı dua_yt_ id'leri tekrar eklenmesin.
+        if (duaPlaylistContent.length > 0) {
+          const existingIds = new Set(newAssets.map(a => a.id));
+          newAssets = [...newAssets, ...duaPlaylistContent.filter(a => !existingIds.has(a.id))];
         }
         return newAssets;
       });
