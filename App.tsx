@@ -9,7 +9,7 @@ import { LocationOverlay } from './components/LocationOverlay';
 import { Dashboard } from './components/Dashboard';
 import { StartOverlay } from './components/StartOverlay';
 import { getContent } from './services/contentService';
-import { getStreamForTheme, getDroneVideo } from './services/streamService';
+import { getStreamForTheme, getDroneVideo, getMusicVideo } from './services/streamService';
 import {
   fetchRizaGunayContent,
   fetchAdhanContent,
@@ -282,12 +282,28 @@ const App: React.FC = () => {
   useEffect(() => {
     if (!hasStarted) return;
 
-    const isModeChange = prevAudioModeRef.current !== settings.audioMode;
+    const prevMode = prevAudioModeRef.current;
+    const isModeChange = prevMode !== settings.audioMode;
 
     // Only process if mode actually changed
     if (!isModeChange) return;
 
     prevAudioModeRef.current = settings.audioMode;
+
+    // When switching TO MUSIC (INSTRUMENTAL): video = müzik playlist (video+ses tek player),
+    // ayrı AudioPlayer render edilmez. Video'yu müzik videosuna zorla.
+    if (settings.audioMode === AudioMode.INSTRUMENTAL) {
+      getMusicVideo(currentVideoRef.current.id, videoBlacklistRef.current).then(video => {
+        if (video) {
+          setCurrentVideo(video);
+          setElapsed(prev => ({ ...prev, v: 0 }));
+        }
+      });
+      // currentAudio'yu da güncelle (UI tutarlılığı; AudioPlayer MUSIC'te render edilmez)
+      setCurrentAudio(selectAudioForTheme(currentTheme, settings.audioMode));
+      setElapsed(prev => ({ ...prev, a: 0 }));
+      return;
+    }
 
     // When switching TO Quran mode, force start with Surah An-Nur by Muhammed Al-Kurdi
     if (settings.audioMode === AudioMode.QURAN) {
@@ -331,10 +347,20 @@ const App: React.FC = () => {
       }
     }
 
-    // For all other mode changes (ADHAN, INSTRUMENTAL, etc.)
+    // For all other mode changes (ADHAN, etc.)
     const newAudio = selectAudioForTheme(currentTheme, settings.audioMode);
     setCurrentAudio(newAudio);
     setElapsed(prev => ({ ...prev, a: 0 }));
+
+    // MUSIC'ten çıkış: aktif müzik videosunu tema videosuyla değiştir (müzik video bg kalmasın).
+    if (prevMode === AudioMode.INSTRUMENTAL) {
+      getStreamForTheme(currentTheme, currentVideoRef.current.id, settings.audioMode, videoBlacklistRef.current).then(video => {
+        if (video) {
+          setCurrentVideo(video);
+          setElapsed(prev => ({ ...prev, v: 0 }));
+        }
+      });
+    }
     // Note: intentionally omitting selectAudioForTheme from dependency array to prevent overrides on background data load
   }, [settings.audioMode, currentTheme, hasStarted, audioAssets, selectAudioForTheme]);
 
@@ -441,6 +467,8 @@ const App: React.FC = () => {
 
   const uiVisible = (!isIdle || isDashboardOpen) && hasStarted;
   const providerName = STREAM_PROVIDERS[currentVideo.providerId]?.displayName || 'Unknown';
+  // MUSIC modu: video sesli çalar (tek player), ayrı AudioPlayer susturulur (çift-ses yok).
+  const isMusicMode = settings.audioMode === AudioMode.INSTRUMENTAL;
 
   const handleScreenClick = useCallback(() => {
     if (hasStarted && !isDashboardOpen) {
@@ -451,8 +479,14 @@ const App: React.FC = () => {
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-black select-none" onClick={handleScreenClick}>
       {!hasStarted && <StartOverlay onStart={handleStart} />}
-      <VideoPlayer asset={currentVideo} isPaused={isDashboardOpen || isUserPaused} onError={handleVideoError} />
-      {hasStarted && (
+      <VideoPlayer
+        asset={currentVideo}
+        isPaused={isDashboardOpen || isUserPaused}
+        onError={handleVideoError}
+        muted={!isMusicMode}
+        volume={settings.volume}
+      />
+      {hasStarted && !isMusicMode && (
         <AudioPlayer
           key={`${settings.audioMode}-${currentAudio.id}`}
           asset={currentAudio}
@@ -480,15 +514,15 @@ const App: React.FC = () => {
 
       {hasStarted && (
         <div className={`absolute right-4 md:right-8 2xl:right-16 z-40 flex flex-col items-end text-right transition-opacity duration-1000 ${isArtistFading ? 'opacity-0' : 'opacity-100'} top-[calc(1.5rem+42px)] md:top-[calc(2rem+44px)] 2xl:top-[calc(4rem+102px)]`}>
-          <span className="text-[8px] md:text-[10px] 2xl:text-xs font-bold uppercase tracking-[0.3em] text-white/50 mb-0.5">Reciter</span>
+          <span className="text-[8px] md:text-[10px] 2xl:text-xs font-bold uppercase tracking-[0.3em] text-white/50 mb-0.5">{isMusicMode ? 'Now Playing' : 'Reciter'}</span>
           <div className="flex items-center gap-2 text-white/90 text-[11px] md:text-sm 2xl:text-2xl font-light">
-            <User size={14} className="opacity-50" />
-            <span>{displayArtist}</span>
+            {isMusicMode ? <Music size={14} className="opacity-50" /> : <User size={14} className="opacity-50" />}
+            <span>{isMusicMode ? 'Classical Music' : displayArtist}</span>
           </div>
           <div className="text-[9px] md:text-[10px] 2xl:text-sm text-white/40 font-medium mt-0.5 mb-2 flex items-center justify-end gap-2">
-            <span>{currentAudio.title}</span>
+            <span>{isMusicMode ? currentVideo.description : currentAudio.title}</span>
             <span className="opacity-30">|</span>
-            <span>{getHostname(currentAudio.url)}</span>
+            <span>{isMusicMode ? 'youtube.com' : getHostname(currentAudio.url)}</span>
           </div>
 
           {/* Runtime Counters */}

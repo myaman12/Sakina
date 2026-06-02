@@ -7,6 +7,9 @@ interface VideoPlayerProps {
   asset: VideoAsset;
   isPaused: boolean;
   onError?: () => void;
+  // MUSIC modunda video sesli çalar (tek player video+ses). Varsayılan: sessiz arka plan.
+  muted?: boolean;
+  volume?: number; // 0..1 — yalnız muted=false iken etkili
 }
 
 interface VideoBufferState {
@@ -17,7 +20,7 @@ interface VideoBufferState {
 const isYouTube = (url: string): boolean =>
   url.includes('youtube.com') || url.includes('youtu.be');
 
-export const VideoPlayer: React.FC<VideoPlayerProps> = ({ asset, isPaused, onError }) => {
+export const VideoPlayer: React.FC<VideoPlayerProps> = ({ asset, isPaused, onError, muted = true, volume = 0 }) => {
   const videoRefA = useRef<HTMLVideoElement>(null);
   const videoRefB = useRef<HTMLVideoElement>(null);
 
@@ -99,7 +102,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ asset, isPaused, onErr
           <ReactPlayer
             url={youtubeUrl}
             playing={showYoutube && !isPaused}
-            muted
+            muted={muted}
+            volume={volume}
             loop
             width="100%"
             height="100%"

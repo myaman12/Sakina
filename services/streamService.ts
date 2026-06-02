@@ -126,12 +126,58 @@ export const getDroneVideo = async (theme: VisualTheme): Promise<VideoAsset> => 
     return VIDEO_ASSETS[0];
 };
 
+// --- MUSIC modu: müziğe özel YouTube playlist (video+ses tek player; bkz VideoPlayer muted/volume) ---
+// Katalog public/music_video_catalog.json (yt-dlp; playlist değişince yeniden üret).
+let _musicCatalogCache: VideoAsset[] | null = null;
+
+const loadMusicCatalog = async (): Promise<VideoAsset[]> => {
+  if (_musicCatalogCache) return _musicCatalogCache;
+  try {
+    const res = await fetch('/music_video_catalog.json');
+    if (!res.ok) throw new Error('music_video_catalog.json offline');
+    const entries: { id: string; title?: string; duration?: number }[] = await res.json();
+    if (!Array.isArray(entries)) return [];
+    _musicCatalogCache = entries
+      .filter(e => e?.id)
+      .map(e => ({
+        id: `music_yt_${e.id}`,
+        url: `https://www.youtube.com/watch?v=${e.id}`,
+        theme: VisualTheme.NATURE,        // tema-agnostik; MUSIC modunda tema kullanılmaz
+        providerId: 'youtube_music',
+        description: (e.title || 'Music').replace(/\s{2,}/g, ' ').trim(),
+        quality: 'HD',
+        rating: 50,
+      }));
+    return _musicCatalogCache;
+  } catch {
+    return [];
+  }
+};
+
+export const getMusicVideo = async (excludeId?: string, blacklistIds: string[] = []): Promise<VideoAsset | null> => {
+  const catalog = await loadMusicCatalog();
+  let pool = catalog.filter(v => !blacklistIds.includes(v.id));
+  if (excludeId) {
+    const filtered = pool.filter(v => v.id !== excludeId);
+    if (filtered.length > 0) pool = filtered;
+  }
+  if (pool.length === 0) return null;
+  return pool[Math.floor(Math.random() * pool.length)];
+};
+
 export const getStreamForTheme = async (
     theme: VisualTheme,
     excludeId?: string,
     audioMode?: AudioMode,
     blacklistIds: string[] = []
 ): Promise<VideoAsset> => {
+  // MUSIC (INSTRUMENTAL) modu: tema-bağımsız müzik playlist'i (video+ses). Tema sağlayıcılarını bypass eder.
+  if (audioMode === AudioMode.INSTRUMENTAL) {
+    const musicVideo = await getMusicVideo(excludeId, blacklistIds);
+    if (musicVideo) return musicVideo;
+    // katalog boş/erişilemez → normal akışa düş (güvenlik)
+  }
+
   let candidates: VideoAsset[] = [];
 
   // Fetch from APIs — always respect user's theme selection
