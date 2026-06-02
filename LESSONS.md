@@ -65,3 +65,23 @@ kullanıcı tema seçimi ayrı konu (S-003).
 **Origin:** `_meta/sessions/apps/_log.md` 2026-05-31 — LocationOverlay etiket fix (Yaklaşım 1)
 
 ---
+
+### S-006: YouTube ses kaynağı — AudioPlayer zaten gizli react-player ile audio-only çalar; oynatıcı değiştirme
+
+**Pattern:** DUA modunda az dua vardı; bir YouTube playlist (15 dua) eklendi. `AudioPlayer.tsx`
+`react-player` kullanıp player'ı **gizli** (1px, opacity 0, off-screen) render ediyor → YouTube
+watch URL'i `asset.url` olarak verilince **ses-only** çalar (video gizli). Sakina video arka
+planlarında aynı mekanizmayı kullanıyor; build çıktısında YouTube chunk zaten var. Yani yeni
+ses kaynağı = oynatıcıda **sıfır değişiklik**.
+
+**Don't:** YouTube sesi için ayrı player/extraction yazma; mevcut ReactPlayer yolunu görmezden gel.
+**Do:** (1) Katalog üret (`yt-dlp --flat-playlist --dump-single-json` → `public/<x>_catalog.json`,
+mevcut `youtube_catalog.json` deseni, L-016). (2) Servis fonksiyonu katalog→`AudioAsset`
+(`url: youtube.com/watch?v=<id>`, doğru `type`), hata→`[]` (graceful). (3) `App.tsx loadDynamicAudio`
+Promise.all + dedupe merge; **sona ekle** ki DUA forced-start (`.find` ilk Cevşen = arşiv mp3,
+çevrimdışı-güvenilir) bozulmasın. Sınır: embed-kapalı/bölge-kısıtlı/silinmiş video → `onError`
+sonrakine geçer (components/CLAUDE.md zorunlu); YouTube çevrimdışı çalışmaz (archive.org mp3 aksine).
+
+**Origin:** `_meta/sessions/apps/_log.md` 2026-06-02 — dua-youtube-playlist (tsc 0-yeni, test 17/17, build OK).
+
+---
