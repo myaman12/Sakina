@@ -1,0 +1,47 @@
+
+[
+  {
+    "id": "underwater_abyss_blue",
+    "title": "Deep Sea Abyss",
+    "country": "Pacific Ocean",
+    "url": "https://images.pexels.com/video-files/2884976/2884976-uhd_3840_2160_24fps.mp4",
+    "theme": "WATER",
+    "provider": "pexels",
+    "isSurreal": true,
+    "quality": "4K",
+    "rating": 100
+  },
+  {
+    "id": "robin_nature_alps",
+    "title": "French Alps",
+    "country": "France",
+    "url": "https://github.com/RobinFrcd/AerialShots/releases/download/french-alps-2022-v1/robinfrcd_french_alps_mont_blanc_2_1080p_h264.m4v",
+    "theme": "MOUNTAIN",
+    "provider": "robin_aerials",
+    "description": "French Alps, France",
+    "quality": "HD",
+    "rating": 90
+  },
+  {
+    "id": "robin_water_reine",
+    "title": "Reine Archipelago",
+    "country": "Norway",
+    "url": "https://github.com/RobinFrcd/AerialShots/releases/download/norway-2021-v1/robinfrcd_reine_1080p_H264.m4v",
+    "theme": "WATER",
+    "provider": "robin_aerials",
+    "description": "Reine, Norway",
+    "quality": "HD",
+    "rating": 85
+  },
+  {
+    "id": "robin_night_henningsvaer",
+    "title": "Henningsvaer Sunset",
+    "country": "Norway",
+    "url": "https://github.com/RobinFrcd/AerialShots/releases/download/norway-2021-v1/robinfrcd_hennigsvaer_1080p_H264.m4v",
+    "theme": "NIGHT",
+    "provider": "robin_aerials",
+    "description": "Henningsvaer Sunset, Norway",
+    "quality": "HD",
+    "rating": 88
+  }
+]

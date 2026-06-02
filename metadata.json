@@ -1,0 +1,8 @@
+{
+  "name": "Sakina v2.8 (Sakina_28)",
+  "version": "2.8.1",
+  "description": "A cross-platform dynamic wallpaper application combining high-quality surreal video, adaptive audio, and AI-curated spiritual wisdom.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
